@@ -26,6 +26,14 @@ type DraftTranslation = {
   idiom_explanation?: string | null;
 };
 
+type Favorite = {
+  id: string;
+  sourceLang: string;
+  targetLang: string;
+  originalText: string;
+  translation: string;
+};
+
 const CopyButton = ({ text, title, className = "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" }: { text: string; title: string; className?: string }) => {
   const [copied, setCopied] = useState(false);
 
@@ -151,7 +159,8 @@ export default function Home() {
   const [isSourceMenuOpen, setIsSourceMenuOpen] = useState(false);
   const [isTargetMenuOpen, setIsTargetMenuOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
-  
+  const [favorites, setFavorites] = useState<Favorite[]>([]);
+  const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   // Viewport height for mobile keyboard handling
   const [viewportHeight, setViewportHeight] = useState('100dvh');
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
@@ -275,6 +284,26 @@ export default function Home() {
     setSourceLanguage(nextSource);
     setTargetLanguage(nextTarget);
   };
+  // Load favorites from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedFavorites = localStorage.getItem('unlost_favorites');
+      if (savedFavorites) {
+        try {
+          setFavorites(JSON.parse(savedFavorites));
+        } catch (e) {
+          console.error("Failed to parse favorites", e);
+        }
+      }
+    }
+  }, []);
+
+  // Save favorites to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('unlost_favorites', JSON.stringify(favorites));
+    }
+  }, [favorites]);
 
   const getDestLangName = (lang: string) => {
     try {
@@ -603,6 +632,24 @@ export default function Home() {
     setDraft(null);
     setLoadingMode(false);
   };
+  const toggleFavorite = (originalText: string, translation: string, sourceLang: string, targetLang: string) => {
+    const exists = favorites.find(f => f.originalText === originalText && f.translation === translation);
+    if (exists) {
+      setFavorites(favorites.filter(f => f.id !== exists.id));
+    } else {
+      setFavorites([...favorites, {
+        id: Math.random().toString(36).substring(7),
+        originalText,
+        translation,
+        sourceLang,
+        targetLang
+      }]);
+    }
+  };
+
+  const isFavorited = (originalText: string, translation: string) => {
+    return favorites.some(f => f.originalText === originalText && f.translation === translation);
+  };
 
   return (
     <div 
@@ -720,6 +767,56 @@ export default function Home() {
           </div>
         </div>
       </div>
+	  
+	  {/* FAVORITES / PHRASEBOOK DRAWER (Z-15) */}
+      <div 
+        className={`absolute top-0 left-0 w-full bg-gray-50 dark:bg-gray-900 shadow-inner dark:shadow-gray-950/50 transition-transform duration-300 ease-in-out z-15 flex flex-col ${
+          isFavoritesOpen ? 'translate-y-0 h-full pt-[76px]' : '-translate-y-full h-full pt-[76px]'
+        }`}
+        style={{ zIndex: 15 }}
+      >
+        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4 pt-6">
+          <h2 className="text-2xl font-bold mb-4 px-2 text-gray-800 dark:text-gray-200">⭐ Offline Phrasebook</h2>
+          
+          {favorites.length === 0 ? (
+            <div className="text-center text-gray-400 dark:text-gray-500 mt-10 italic">Nu ai salvat încă nicio expresie favorită.</div>
+          ) : (
+            favorites.map((fav) => (
+              <div key={fav.id} className="bg-white dark:bg-gray-800 rounded-3xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col relative group">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-400">{LANGUAGE_DISPLAY_NAMES[fav.sourceLang]} → {LANGUAGE_DISPLAY_NAMES[fav.targetLang]}</span>
+                  <button 
+                    onClick={() => toggleFavorite(fav.originalText, fav.translation, fav.sourceLang, fav.targetLang)}
+                    className="text-amber-500 hover:text-amber-600 transition-colors"
+                    title="Remove from favorites"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                      <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 mb-1 text-lg">{fav.originalText}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white leading-snug">{fav.translation}</p>
+                
+                <div className="absolute bottom-3 right-4 flex space-x-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                   <CopyButton text={fav.translation} title="Copy translation" />
+                   <button onClick={() => setFullScreenText(fav.translation)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" title="Expand">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" /></svg>
+                   </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shrink-0 shadow-[0_-4px_10px_rgba(0,0,0,0.03)] dark:shadow-none">
+          <button 
+            onClick={() => setIsFavoritesOpen(false)} 
+            className="w-full bg-amber-500 text-white font-bold py-4 text-lg rounded-2xl active:bg-amber-600 shadow-lg shadow-amber-200 dark:shadow-amber-900/20 transition-colors"
+          >
+            Close Phrasebook
+          </button>
+        </div>
+      </div>
 
       {/* HISTORY DRAWER (Z-10) */}
       <div 
@@ -757,15 +854,28 @@ export default function Home() {
                         )}
                         <p className="text-xl leading-snug">{displayText}</p>
                       </div>
-                      <div className="flex shrink-0 space-x-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                      
+                      {/* (Favorite, Copy, Expand) */}
+                      <div className="flex shrink-0 space-x-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity items-center">
+                        <button 
+                          onClick={() => toggleFavorite(interaction.originalText, interaction.translation, interaction.sourceLang, interaction.targetLang)}
+                          className={`${isFavorited(interaction.originalText, interaction.translation) ? 'text-amber-400 hover:text-amber-500' : (isRight ? 'text-blue-300/70 hover:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300')} transition-colors p-1`}
+                          title={isFavorited(interaction.originalText, interaction.translation) ? "Remove from favorites" : "Save to Phrasebook"}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill={isFavorited(interaction.originalText, interaction.translation) ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385c.148.621-.531 1.05-1.024.69l-4.73-3.466a.562.562 0 00-.652 0l-4.73 3.466c-.493.36-1.172-.07-1.024-.69l1.285-5.385a.563.563 0 00-.182-.557l-4.204-3.602c-.38-.325-.178-.95.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                          </svg>
+                        </button>
+                        
                         <CopyButton 
                           text={displayText} 
                           title="Copy message" 
-                          className={isRight ? 'text-blue-200 hover:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'} 
+                          className={`p-1 ${isRight ? 'text-blue-300/70 hover:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`} 
                         />
+                        
                         <button 
                           onClick={() => setFullScreenText(interaction.translation)} 
-                          className={isRight ? 'text-blue-200 hover:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}
+                          className={`p-1 transition-colors ${isRight ? 'text-blue-300/70 hover:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
                           title="Expand"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" /></svg>
@@ -1021,7 +1131,16 @@ export default function Home() {
           </div>
 
           <button 
-            onClick={() => { setIsHelpOpen(!isHelpOpen); setIsHistoryOpen(false); }} 
+            onClick={() => { setIsFavoritesOpen(!isFavoritesOpen); setIsHistoryOpen(false); setIsHelpOpen(false); }} 
+            className={`p-2 rounded-full transition-colors ${isFavoritesOpen ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'}`}
+            title="Phrasebook (Favorites)"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill={isFavoritesOpen ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385c.148.621-.531 1.05-1.024.69l-4.73-3.466a.562.562 0 00-.652 0l-4.73 3.466c-.493.36-1.172-.07-1.024-.69l1.285-5.385a.563.563 0 00-.182-.557l-4.204-3.602c-.38-.325-.178-.95.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+            </svg>
+          </button>
+          <button 
+            onClick={() => { setIsHelpOpen(!isHelpOpen); setIsHistoryOpen(false); setIsFavoritesOpen(false); }} 
             className={`p-2 rounded-full transition-colors ${isHelpOpen ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'}`}
             title="Help"
           >
@@ -1030,7 +1149,7 @@ export default function Home() {
             </svg>
           </button>
           <button 
-            onClick={() => { setIsHistoryOpen(!isHistoryOpen); setIsHelpOpen(false); }} 
+            onClick={() => { setIsHistoryOpen(!isHistoryOpen); setIsHelpOpen(false); setIsFavoritesOpen(false); }} 
             className={`p-2 rounded-full transition-colors ${isHistoryOpen ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'}`}
             title="History"
           >
