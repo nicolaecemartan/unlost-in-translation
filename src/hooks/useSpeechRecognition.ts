@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
-export const useSpeechRecognition = (language = 'en-US') => {
+export const useSpeechRecognition = (languageCode: string | undefined) => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [isSupported, setIsSupported] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -17,35 +18,24 @@ export const useSpeechRecognition = (language = 'en-US') => {
   const startListening = () => {
     const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
     
-    if (!SpeechRecognition) {
-      alert('Browser-ul tău nu suportă recunoașterea vocală.');
+    if (!SpeechRecognition || !languageCode) {
+      alert('Recunoașterea vocală nu este suportată sau limba este invalidă.');
       return;
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = language; 
+    recognition.lang = languageCode; 
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
-    recognition.onstart = () => {
-      setIsListening(true);
-    };
-
+    recognition.onstart = () => setIsListening(true);
     recognition.onresult = (event: any) => {
-      const current = event.resultIndex;
-      const transcriptText = event.results[current][0].transcript;
-      setTranscript(transcriptText);
+      setTranscript(event.results[0][0].transcript);
     };
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
 
-    recognition.onerror = (event: any) => {
-      console.error('Eroare microfon:', event.error);
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-    };
-
+    recognitionRef.current = recognition;
     recognition.start();
   };
 

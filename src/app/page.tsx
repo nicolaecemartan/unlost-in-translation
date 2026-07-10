@@ -179,7 +179,7 @@ export default function Home() {
   const sourceMenuRef = useRef<HTMLDivElement>(null);
   const targetMenuRef = useRef<HTMLDivElement>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
-
+  const langCode = LANG_CODES[sourceLanguage] || 'en';
   const { isListening, transcript, startListening, setTranscript, isSupported } = useSpeechRecognition(LANG_CODES[sourceLanguage]);
 
   // Load from URL on mount
