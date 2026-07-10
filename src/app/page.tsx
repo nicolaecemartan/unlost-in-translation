@@ -48,6 +48,20 @@ const CopyButton = ({ text, title, className = "text-gray-400 hover:text-gray-60
   );
 };
 
+const SpeakButton = ({ text, language, title, className = "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" }: { text: string; language: string; title: string; className?: string }) => {
+  return (
+    <button 
+      onClick={() => playAudio(text, language)}
+      className={`transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100 ${className}`}
+      title={title}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+      </svg>
+    </button>
+  );
+};
+
 const LANGUAGES = [
   'English',
   'Spanish',
@@ -166,7 +180,7 @@ export default function Home() {
   const targetMenuRef = useRef<HTMLDivElement>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
 
-  const { isListening, transcript, startListening, setTranscript } = useSpeechRecognition(LANG_CODES[sourceLanguage]);
+  const { isListening, transcript, startListening, setTranscript, isSupported } = useSpeechRecognition(LANG_CODES[sourceLanguage]);
 
   // Load from URL on mount
   useEffect(() => {
@@ -774,15 +788,12 @@ export default function Home() {
                           title="Copy message" 
                           className={isRight ? 'text-blue-200 hover:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'} 
                         />
-                        <button 
-                          onClick={() => playAudio(displayText, isRight ? LANG_CODES[sourceLanguage] : LANG_CODES[targetLanguage])}
+                        <SpeakButton 
+                          text={displayText} 
+                          language={displayText === interaction.originalText ? LANG_CODES[interaction.sourceLang] : LANG_CODES[interaction.targetLang]}
+                          title={getStr(sourceLanguage, 'readAloud')}
                           className={isRight ? 'text-blue-200 hover:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}
-                          title="Read Aloud"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
-                          </svg>
-                        </button>
+                        />
                         <button 
                           onClick={() => setFullScreenText(interaction.translation)} 
                           className={isRight ? 'text-blue-200 hover:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}
@@ -1080,40 +1091,44 @@ export default function Home() {
             <div className="flex-1 relative flex flex-col min-h-0 w-full">
               <textarea
                 ref={textareaRef}
-                className="flex-1 w-full text-3xl sm:text-5xl text-gray-800 dark:text-white placeholder-gray-200 dark:placeholder-gray-700 resize-none outline-none bg-transparent py-2 leading-tight font-medium overflow-y-auto pr-10 sm:pr-12"
+                className="flex-1 w-full text-3xl sm:text-5xl text-gray-800 dark:text-white placeholder-gray-200 dark:placeholder-gray-700 resize-none outline-none bg-transparent py-2 leading-tight font-medium overflow-y-auto pr-24"
                 placeholder={getStr(sourceLanguage, 'typeHere')}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={loadingMode !== false}
               />
-              <div className="absolute top-2 right-0 flex gap-2 sm:gap-3 px-2">
-                <button
-                  onClick={startListening}
-                  disabled={loadingMode !== false || isListening}
-                  className={`transition-colors rounded-full p-2 backdrop-blur-sm shadow-sm border ${
-                    isListening 
-                      ? 'bg-red-500 text-white border-red-600 animate-pulse' 
-                      : 'text-gray-400 hover:text-blue-600 bg-white/80 dark:bg-gray-900/80 border-gray-100 dark:border-gray-800'
-                  }`}
-                  title="Speak"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
-                  </svg>
-                </button>
-
-                {input.length > 0 && loadingMode === false && (
-                  <button
-                    onClick={() => { setInput(''); textareaRef.current?.focus(); }}
-                    className="text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400 transition-colors bg-white/80 dark:bg-gray-900/80 rounded-full p-2 backdrop-blur-sm shadow-sm border border-gray-100 dark:border-gray-800"
-                    title="Clear text"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
-              </div>
+              
+              {(isSupported || (input.length > 0 && loadingMode === false)) && (
+                <div className="absolute top-2 right-0 flex gap-2 sm:gap-3 px-2">
+                  {isSupported && (
+                    <button
+                      onClick={startListening}
+                      disabled={loadingMode !== false || isListening}
+                      className={`transition-colors rounded-full p-2 backdrop-blur-sm shadow-sm border ${
+                        isListening 
+                          ? 'bg-red-500 text-white border-red-600 animate-pulse' 
+                          : 'text-gray-400 hover:text-blue-600 bg-white/80 dark:bg-gray-900/80 border-gray-100 dark:border-gray-800'
+                      }`}
+                      title="Speak"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+                      </svg>
+                    </button>
+                  )}
+                  {input.length > 0 && loadingMode === false && (
+                    <button
+                      onClick={() => { setInput(''); textareaRef.current?.focus(); }}
+                      className="text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400 transition-colors bg-white/80 dark:bg-gray-900/80 rounded-full p-2 backdrop-blur-sm shadow-sm border border-gray-100 dark:border-gray-800"
+                      title="Clear text"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
             
             <div className="shrink-0 pt-3 pb-1 flex gap-2 sm:gap-3">
@@ -1183,15 +1198,12 @@ export default function Home() {
                   <p className="text-sm font-bold text-blue-500 dark:text-blue-400 uppercase tracking-widest">{LANGUAGE_DISPLAY_NAMES[draft.targetLang]}</p>
                   <div className="flex space-x-2">
                     <CopyButton text={draft.translation} title="Copy Translation" className="text-blue-400 hover:text-blue-600 dark:text-blue-500 dark:hover:text-blue-300" />
-                    <button 
-                      onClick={() => playAudio(draft.translation, LANG_CODES[draft.targetLang])}
-                      className="text-blue-400 hover:text-blue-600 dark:text-blue-500 dark:hover:text-blue-300 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100" 
-                      title="Read Aloud"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
-                      </svg>
-                    </button>
+                    <SpeakButton 
+                      text={draft.translation} 
+                      language={LANG_CODES[draft.targetLang]}
+                      title={getStr(sourceLanguage, 'readAloud')}
+                      className="text-blue-400 hover:text-blue-600 dark:text-blue-500 dark:hover:text-blue-300" 
+                    />
                     <button onClick={() => setFullScreenText(draft.translation)} className="text-blue-400 hover:text-blue-600 dark:text-blue-500 dark:hover:text-blue-300 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100" title="Expand Translation">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" /></svg>
                     </button>

@@ -1,13 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export const useSpeechRecognition = (language = 'en-US') => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [isSupported, setIsSupported] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+      setIsSupported(!!SpeechRecognition);
+    }
+  }, []);
 
   const startListening = () => {
-    // Verificăm dacă browserul suportă API-ul (Safari folosește prefixul webkit)
     const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
     
     if (!SpeechRecognition) {
@@ -17,7 +24,7 @@ export const useSpeechRecognition = (language = 'en-US') => {
 
     const recognition = new SpeechRecognition();
     recognition.lang = language; 
-    recognition.interimResults = false; // Luăm doar rezultatul final
+    recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
     recognition.onstart = () => {
@@ -42,5 +49,5 @@ export const useSpeechRecognition = (language = 'en-US') => {
     recognition.start();
   };
 
-  return { isListening, transcript, startListening, setTranscript };
+  return { isListening, transcript, startListening, setTranscript, isSupported };
 };
