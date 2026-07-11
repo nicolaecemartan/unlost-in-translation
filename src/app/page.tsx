@@ -180,7 +180,7 @@ export default function Home() {
   const targetMenuRef = useRef<HTMLDivElement>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
   const langCode = LANG_CODES[sourceLanguage] || 'en';
-  const { isListening, transcript, startListening, setTranscript, isSupported } = useSpeechRecognition(LANG_CODES[sourceLanguage]);
+  const { isListening, transcript, startListening, setTranscript, isSupported } = useSpeechRecognition(langCode);
 
   // Load from URL on mount
   useEffect(() => {
