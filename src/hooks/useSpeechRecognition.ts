@@ -10,13 +10,7 @@ export const useSpeechRecognition = (languageCode: string | undefined) => {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
-      setIsSupported(!!SpeechRecognition);
-    }
-  }, []);
-
-  const startListening = () => {
-    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     
     if (!SpeechRecognition || !languageCode) {
       alert('Recunoașterea vocală nu este suportată sau limba este invalidă.');
