@@ -38,7 +38,9 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitEmergency: 'Emergency'
   ,
     cameraTranslation: 'Camera Translation',
-    processingImage: 'Processing Image...'},
+    processingImage: 'Processing Image...',
+    offlineTitle: 'You are currently offline',
+    offlineMessage: 'It looks like you lost your internet connection. In the upcoming updates, your offline chat history and phrasebook will be available right here!',},
   'Spanish': {
 	phrasebookTitle: 'Libro de Frases Offline',
     noFavorites: 'Aún no has guardado ninguna frase favorita.',
@@ -78,7 +80,9 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitEmergency: 'Emergencia'
   ,
     cameraTranslation: 'Traducción por cámara',
-    processingImage: 'Procesando imagen...'},
+    processingImage: 'Procesando imagen...',
+    offlineTitle: 'Actualmente estás sin conexión',
+    offlineMessage: 'Parece que perdiste tu conexión a internet. ...',},
   'Romanian': {
 	phrasebookTitle: 'Ghid de Conversație Offline',
     noFavorites: 'Nu ai salvat nicio expresie favorită încă.',
@@ -118,7 +122,9 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitEmergency: 'Urgență'
   ,
     cameraTranslation: 'Traducere cu camera',
-    processingImage: 'Se procesează imaginea...'},
+    processingImage: 'Se procesează imaginea...',
+    offlineTitle: 'În prezent ești offline',
+    offlineMessage: 'Se pare că ai pierdut conexiunea la internet. Verifică-ți conexiunea și încearcă din nou.',},
   'French': {
 	phrasebookTitle: 'Guide de conversation hors ligne',
     noFavorites: 'Vous n\'avez encore enregistré aucune phrase favorite.',
@@ -136,7 +142,9 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitMedical: 'Médical',
     sitDating: 'Rencontres',
     sitService: 'Service',
-    sitEmergency: 'Urgence'
+    sitEmergency: 'Urgence',
+    offlineTitle: 'Vous êtes actuellement hors ligne',
+    offlineMessage: 'Il semble que vous ayez perdu votre connexion Internet. Vérifiez votre connexion et réessayez.',
   },
   'German': {
 	phrasebookTitle: 'Offline-Sprachführer',
@@ -155,7 +163,9 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitMedical: 'Medizinisch',
     sitDating: 'Dating',
     sitService: 'Service',
-    sitEmergency: 'Notfall'
+    sitEmergency: 'Notfall',
+    offlineTitle: 'Sie sind derzeit offline',
+    offlineMessage: 'Es scheint, dass Sie Ihre Internetverbindung verloren haben. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
   },
   'Italian': {
 	phrasebookTitle: 'Frasario Offline',
@@ -174,7 +184,9 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitMedical: 'Medico',
     sitDating: 'Appuntamenti',
     sitService: 'Servizio',
-    sitEmergency: 'Emergenza'
+    sitEmergency: 'Emergenza',
+    offlineTitle: 'Al momento sei offline',
+    offlineMessage: 'Sembra che tu abbia perso la connessione a Internet. Controlla la connessione e riprova.',
   },
   'Portuguese': {
 	phrasebookTitle: 'Guia de Conversação Offline',
@@ -193,7 +205,9 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitMedical: 'Médico',
     sitDating: 'Encontros',
     sitService: 'Serviço',
-    sitEmergency: 'Emergência'
+    sitEmergency: 'Emergência',
+    offlineTitle: 'Você está offline no momento',
+    offlineMessage: 'Parece que você perdeu sua conexão com a internet. Verifique sua conexão e tente novamente.',
   },
   'Japanese': {
 	phrasebookTitle: 'オフラインフレーズブック',
@@ -215,7 +229,9 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitEmergency: '緊急'
   ,
     cameraTranslation: 'カメラ翻訳',
-    processingImage: '画像処理中...'},
+    processingImage: '画像処理中...',
+    offlineTitle: '現在オフラインです',
+    offlineMessage: 'インターネット接続が切断されたようです。接続を確認して、もう一度お試しください。',},
   'Chinese (Mandarin)': {
 	phrasebookTitle: '离线短语手册',
     noFavorites: '您还没有保存任何喜欢的短语。',
@@ -233,7 +249,9 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitMedical: '医疗',
     sitDating: '约会',
     sitService: '服务',
-    sitEmergency: '紧急'
+    sitEmergency: '紧急',
+    offlineTitle: '当前处于离线状态',
+    offlineMessage: '看起来您已断开互联网连接。请检查您的网络连接，然后重试。',
   },
   'Korean': {
 	phrasebookTitle: '오프라인 회화집',
@@ -252,7 +270,9 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitMedical: '의료',
     sitDating: '데이트',
     sitService: '서비스',
-    sitEmergency: '비상'
+    sitEmergency: '비상',
+    offlineTitle: '현재 오프라인 상태입니다',
+    offlineMessage: '인터넷 연결이 끊어진 것 같습니다. 연결을 확인한 후 다시 시도해 주세요.',
   },
   'Russian': {
 	phrasebookTitle: 'Офлайн-разговорник',
@@ -271,7 +291,9 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitMedical: 'Медицина',
     sitDating: 'Свидания',
     sitService: 'Сервис',
-    sitEmergency: 'Чрезвычайная Ситуация'
+    sitEmergency: 'Чрезвычайная Ситуация',
+    offlineTitle: 'Сейчас вы не в сети',
+    offlineMessage: 'Похоже, что соединение с интернетом было потеряно. Проверьте подключение и попробуйте снова.',
   },
   'Arabic': {
 	phrasebookTitle: 'كتاب العبارات دون اتصال',
@@ -290,7 +312,9 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitMedical: 'طبي',
     sitDating: 'مواعدة',
     sitService: 'خدمة',
-    sitEmergency: 'طوارئ'
+    sitEmergency: 'طوارئ',
+    offlineTitle: 'أنت غير متصل بالإنترنت حاليًا',
+    offlineMessage: 'يبدو أنك فقدت الاتصال بالإنترنت. تحقق من اتصالك ثم حاول مرة أخرى.',
   },
   'Thai': {
 	phrasebookTitle: 'สมุดวลีออฟไลน์',
@@ -312,7 +336,9 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitEmergency: 'ฉุกเฉิน'
   ,
     cameraTranslation: 'แปลจากกล้อง',
-    processingImage: 'กำลังประมวลผลรูปภาพ...'}
+    processingImage: 'กำลังประมวลผลรูปภาพ...',
+    offlineTitle: 'ขณะนี้คุณออฟไลน์อยู่',
+    offlineMessage: 'ดูเหมือนว่าคุณสูญเสียการเชื่อมต่ออินเทอร์เน็ต โปรดตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง',}
 };
 
 export const getStr = (lang: string, key: string): string => {
