@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { execSync } from "child_process";
+import withPWAInit from "@ducanh2912/next-pwa";
 
 let commitDate = "";
 let commitHash = process.env.VERCEL_GIT_COMMIT_SHA?.substring(0, 7) || "";
@@ -20,4 +21,13 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const withPWA = withPWAInit({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+  register: true,
+  fallbacks: {
+    document: "/~offline",
+  },
+});
+
+export default withPWA(nextConfig);

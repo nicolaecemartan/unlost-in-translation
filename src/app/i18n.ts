@@ -1,5 +1,8 @@
 export const UI_STRINGS: Record<string, Record<string, string>> = {
   'English': {
+	phrasebookTitle: 'Offline Phrasebook',
+    noFavorites: 'You haven\'t saved any favorite phrases yet.',
+    closePhrasebook: 'Close Phrasebook',
     idiomExplanation: 'Idiom Explanation',
     noHistory: 'No chat history yet.',
     closeHistory: 'Close History',
@@ -35,8 +38,13 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitEmergency: 'Emergency'
   ,
     cameraTranslation: 'Camera Translation',
-    processingImage: 'Processing Image...'},
+    processingImage: 'Processing Image...',
+    offlineTitle: 'You are currently offline',
+    offlineMessage: 'It looks like you lost your internet connection. In the upcoming updates, your offline chat history and phrasebook will be available right here!',},
   'Spanish': {
+	phrasebookTitle: 'Libro de Frases Offline',
+    noFavorites: 'Aún no has guardado ninguna frase favorita.',
+    closePhrasebook: 'Cerrar Libro de Frases',
     idiomExplanation: 'Explicación del Modismo',
     noHistory: 'No hay historial.',
     closeHistory: 'Cerrar Historial',
@@ -72,8 +80,13 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitEmergency: 'Emergencia'
   ,
     cameraTranslation: 'Traducción por cámara',
-    processingImage: 'Procesando imagen...'},
+    processingImage: 'Procesando imagen...',
+    offlineTitle: 'Actualmente estás sin conexión',
+    offlineMessage: 'Parece que perdiste tu conexión a internet. ...',},
   'Romanian': {
+	phrasebookTitle: 'Ghid de Conversație Offline',
+    noFavorites: 'Nu ai salvat nicio expresie favorită încă.',
+    closePhrasebook: 'Închide Ghidul',
     idiomExplanation: 'Explicația Expresiei',
     noHistory: 'Niciun istoric.',
     closeHistory: 'Închide Istoricul',
@@ -109,8 +122,13 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitEmergency: 'Urgență'
   ,
     cameraTranslation: 'Traducere cu camera',
-    processingImage: 'Se procesează imaginea...'},
+    processingImage: 'Se procesează imaginea...',
+    offlineTitle: 'În prezent ești offline',
+    offlineMessage: 'Se pare că ai pierdut conexiunea la internet. Verifică-ți conexiunea și încearcă din nou.',},
   'French': {
+	phrasebookTitle: 'Guide de conversation hors ligne',
+    noFavorites: 'Vous n\'avez encore enregistré aucune phrase favorite.',
+    closePhrasebook: 'Fermer le guide de conversation',
     idiomExplanation: "Explication de l'Idiome",
     noHistory: 'Aucun historique.', closeHistory: "Fermer l'historique", you: 'Vous', translatingTo: 'Traduction vers', typeHere: 'Tapez ici...', checkingIntent: "Vérification de l'intention...", checkIntent: "Vérifier l'intention & Traduire", translating: 'Traduction...', directTranslate: 'Traduction Directe', sanityCheck: 'Vérification de Sens', warning: 'Avertissement Culturel', discard: 'Ignorer', approve: 'Approuver & Passer', replyIn: 'Répondre en', roundTrip: 'Rétro-traduction', generatingRoundTrip: 'Génération de la rétro-traduction...', suggestedFix: 'Correction Suggérée', useThisVersion: 'Utiliser cette version', otherWaysToRewrite: 'Autres façons de réécrire :', generatingSuggestions: 'Génération de suggestions...',
     toneAuto: 'Ton Auto',
@@ -124,9 +142,14 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitMedical: 'Médical',
     sitDating: 'Rencontres',
     sitService: 'Service',
-    sitEmergency: 'Urgence'
+    sitEmergency: 'Urgence',
+    offlineTitle: 'Vous êtes actuellement hors ligne',
+    offlineMessage: 'Il semble que vous ayez perdu votre connexion Internet. Vérifiez votre connexion et réessayez.',
   },
   'German': {
+	phrasebookTitle: 'Offline-Sprachführer',
+    noFavorites: 'Du hast noch keine Lieblingsphrasen gespeichert.',
+    closePhrasebook: 'Sprachführer schließen',
     idiomExplanation: 'Erklärung der Redewendung',
     noHistory: 'Kein Chat-Verlauf.', closeHistory: 'Verlauf schließen', you: 'Du', translatingTo: 'Übersetzen nach', typeHere: 'Hier tippen...', checkingIntent: 'Absicht wird geprüft...', checkIntent: 'Absicht prüfen & Übersetzen', translating: 'Übersetzen...', directTranslate: 'Direkt übersetzen', sanityCheck: 'Sinnprüfung', warning: 'Kulturelle Warnung', discard: 'Verwerfen', approve: 'Genehmigen & Übergeben', replyIn: 'Antworten auf', roundTrip: 'Rückübersetzung', generatingRoundTrip: 'Rückübersetzung wird erstellt...', suggestedFix: 'Vorgeschlagene Korrektur', useThisVersion: 'Diese Version verwenden', otherWaysToRewrite: 'Andere Formulierungsmöglichkeiten:', generatingSuggestions: 'Vorschläge werden generiert...',
     toneAuto: 'Auto-Ton',
@@ -140,9 +163,14 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitMedical: 'Medizinisch',
     sitDating: 'Dating',
     sitService: 'Service',
-    sitEmergency: 'Notfall'
+    sitEmergency: 'Notfall',
+    offlineTitle: 'Sie sind derzeit offline',
+    offlineMessage: 'Es scheint, dass Sie Ihre Internetverbindung verloren haben. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
   },
   'Italian': {
+	phrasebookTitle: 'Frasario Offline',
+    noFavorites: 'Non hai ancora salvato nessuna frase preferita.',
+    closePhrasebook: 'Chiudi Frasario',
     idiomExplanation: 'Spiegazione del Modo di Dire',
     noHistory: 'Nessuna cronologia.', closeHistory: 'Chiudi cronologia', you: 'Tu', translatingTo: 'Traduzione in', typeHere: 'Scrivi qui...', checkingIntent: 'Verifica Intenzione...', checkIntent: 'Verifica Intenzione & Traduci', translating: 'Traduzione...', directTranslate: 'Traduzione Diretta', sanityCheck: 'Controllo di Senso', warning: 'Avviso Culturale', discard: 'Scarta', approve: 'Approva e Passa', replyIn: 'Rispondi in', roundTrip: 'Traduzione inversa', generatingRoundTrip: 'Generazione traduzione inversa...', suggestedFix: 'Correzione Suggerita', useThisVersion: 'Usa questa versione', otherWaysToRewrite: 'Altri modi per riscrivere:', generatingSuggestions: 'Generazione suggerimenti...',
     toneAuto: 'Tono Auto',
@@ -156,9 +184,14 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitMedical: 'Medico',
     sitDating: 'Appuntamenti',
     sitService: 'Servizio',
-    sitEmergency: 'Emergenza'
+    sitEmergency: 'Emergenza',
+    offlineTitle: 'Al momento sei offline',
+    offlineMessage: 'Sembra che tu abbia perso la connessione a Internet. Controlla la connessione e riprova.',
   },
   'Portuguese': {
+	phrasebookTitle: 'Guia de Conversação Offline',
+    noFavorites: 'Você ainda não salvou nenhuma frase favorita.',
+    closePhrasebook: 'Fechar Guia de Conversação',
     idiomExplanation: 'Explicação de Expressão Idiomática',
     noHistory: 'Nenhum histórico.', closeHistory: 'Fechar Histórico', you: 'Você', translatingTo: 'Traduzindo para', typeHere: 'Digite aqui...', checkingIntent: 'Verificando Intenção...', checkIntent: 'Verificar Intenção e Traduzir', translating: 'Traduzindo...', directTranslate: 'Tradução Direta', sanityCheck: 'Verificação de Sentido', warning: 'Aviso Cultural', discard: 'Descartar', approve: 'Aprovar e Passar', replyIn: 'Responder em', roundTrip: 'Tradução reversa', generatingRoundTrip: 'Gerando tradução reversa...', suggestedFix: 'Correção Sugerida', useThisVersion: 'Usar esta versão', otherWaysToRewrite: 'Outras formas de reescrever:', generatingSuggestions: 'Gerando sugestões...',
     toneAuto: 'Tom Automático',
@@ -172,9 +205,14 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitMedical: 'Médico',
     sitDating: 'Encontros',
     sitService: 'Serviço',
-    sitEmergency: 'Emergência'
+    sitEmergency: 'Emergência',
+    offlineTitle: 'Você está offline no momento',
+    offlineMessage: 'Parece que você perdeu sua conexão com a internet. Verifique sua conexão e tente novamente.',
   },
   'Japanese': {
+	phrasebookTitle: 'オフラインフレーズブック',
+    noFavorites: 'お気に入りのフレーズはまだ保存されていません。',
+    closePhrasebook: 'フレーズブックを閉じる',
     idiomExplanation: '慣用句の説明',
     noHistory: '履歴がありません。', closeHistory: '履歴を閉じる', you: 'あなた', translatingTo: '翻訳先', typeHere: 'ここに入力...', checkingIntent: '意図を確認中...', checkIntent: '意図を確認して翻訳', translating: '翻訳中...', directTranslate: '直接翻訳', sanityCheck: '意味の確認', warning: '文化的警告', discard: '破棄', approve: '承認して渡す', replyIn: '返信する言語:', roundTrip: '逆翻訳', generatingRoundTrip: '逆翻訳を生成中...', suggestedFix: '提案された修正', useThisVersion: 'このバージョンを使用', otherWaysToRewrite: '他の書き換え方法:', generatingSuggestions: '提案を生成中...',
     toneAuto: '自動トーン',
@@ -191,8 +229,13 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitEmergency: '緊急'
   ,
     cameraTranslation: 'カメラ翻訳',
-    processingImage: '画像処理中...'},
+    processingImage: '画像処理中...',
+    offlineTitle: '現在オフラインです',
+    offlineMessage: 'インターネット接続が切断されたようです。接続を確認して、もう一度お試しください。',},
   'Chinese (Mandarin)': {
+	phrasebookTitle: '离线短语手册',
+    noFavorites: '您还没有保存任何喜欢的短语。',
+    closePhrasebook: '关闭短语手册',
     idiomExplanation: '习语解释',
     noHistory: '暂无聊天记录。', closeHistory: '关闭记录', you: '你', translatingTo: '翻译为', typeHere: '在此输入...', checkingIntent: '正在检查意图...', checkIntent: '检查意图并翻译', translating: '翻译中...', directTranslate: '直接翻译', sanityCheck: '合理性检查', warning: '文化警告', discard: '放弃', approve: '批准并交出', replyIn: '回复语言：', roundTrip: '反向翻译', generatingRoundTrip: '正在生成反向翻译...', suggestedFix: '建议修改', useThisVersion: '使用此版本', otherWaysToRewrite: '其他重写方式:', generatingSuggestions: '正在生成建议...',
     toneAuto: '自动语气',
@@ -206,9 +249,14 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitMedical: '医疗',
     sitDating: '约会',
     sitService: '服务',
-    sitEmergency: '紧急'
+    sitEmergency: '紧急',
+    offlineTitle: '当前处于离线状态',
+    offlineMessage: '看起来您已断开互联网连接。请检查您的网络连接，然后重试。',
   },
   'Korean': {
+	phrasebookTitle: '오프라인 회화집',
+    noFavorites: '아직 저장된 즐겨찾기 문구가 없습니다.',
+    closePhrasebook: '회화집 닫기',
     idiomExplanation: '관용구 설명',
     noHistory: '채팅 기록이 없습니다.', closeHistory: '기록 닫기', you: '나', translatingTo: '번역 대상', typeHere: '여기에 입력...', checkingIntent: '의도 확인 중...', checkIntent: '의도 확인 및 번역', translating: '번역 중...', directTranslate: '직접 번역', sanityCheck: '의미 확인', warning: '문화적 경고', discard: '취소', approve: '승인 및 넘기기', replyIn: '답장 언어:', roundTrip: '역번역', generatingRoundTrip: '역번역 생성 중...', suggestedFix: '제안된 수정', useThisVersion: '이 버전 사용', otherWaysToRewrite: '다른 다시 쓰기 방법:', generatingSuggestions: '제안 생성 중...',
     toneAuto: '자동 톤',
@@ -222,9 +270,14 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitMedical: '의료',
     sitDating: '데이트',
     sitService: '서비스',
-    sitEmergency: '비상'
+    sitEmergency: '비상',
+    offlineTitle: '현재 오프라인 상태입니다',
+    offlineMessage: '인터넷 연결이 끊어진 것 같습니다. 연결을 확인한 후 다시 시도해 주세요.',
   },
   'Russian': {
+	phrasebookTitle: 'Офлайн-разговорник',
+    noFavorites: 'Вы еще не сохранили ни одной любимой фразы.',
+    closePhrasebook: 'Закрыть разговорник',
     idiomExplanation: 'Объяснение Идиомы',
     noHistory: 'Нет истории.', closeHistory: 'Закрыть историю', you: 'Вы', translatingTo: 'Перевод на', typeHere: 'Введите текст...', checkingIntent: 'Проверка намерений...', checkIntent: 'Проверить намерение и перевести', translating: 'Перевод...', directTranslate: 'Прямой перевод', sanityCheck: 'Проверка смысла', warning: 'Культурное предупреждение', discard: 'Отменить', approve: 'Одобрить и передать', replyIn: 'Ответить на', roundTrip: 'Обратный перевод', generatingRoundTrip: 'Создание обратного перевода...', suggestedFix: 'Предлагаемое исправление', useThisVersion: 'Использовать эту версию', otherWaysToRewrite: 'Другие способы переписать:', generatingSuggestions: 'Создание предложений...',
     toneAuto: 'Авто Тон',
@@ -238,9 +291,14 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitMedical: 'Медицина',
     sitDating: 'Свидания',
     sitService: 'Сервис',
-    sitEmergency: 'Чрезвычайная Ситуация'
+    sitEmergency: 'Чрезвычайная Ситуация',
+    offlineTitle: 'Сейчас вы не в сети',
+    offlineMessage: 'Похоже, что соединение с интернетом было потеряно. Проверьте подключение и попробуйте снова.',
   },
   'Arabic': {
+	phrasebookTitle: 'كتاب العبارات دون اتصال',
+    noFavorites: 'لم تقم بحفظ أي عبارات مفضلة بعد.',
+    closePhrasebook: 'إغلاق كتاب العبارات',
     idiomExplanation: 'شرح المصطلح',
     noHistory: 'لا يوجد سجل للمحادثة.', closeHistory: 'إغلاق السجل', you: 'أنت', translatingTo: 'ترجمة إلى', typeHere: 'اكتب هنا...', checkingIntent: 'التحقق من القصد...', checkIntent: 'التحقق من القصد والترجمة', translating: 'جاري الترجمة...', directTranslate: 'ترجمة مباشرة', sanityCheck: 'التحقق من المعنى', warning: 'تحذير ثقافي', discard: 'تجاهل', approve: 'موافقة وتسليم', replyIn: 'الرد بـ', roundTrip: 'ترجمة عكسية', generatingRoundTrip: 'جاري إنشاء ترجمة عكسية...', suggestedFix: 'إصلاح مقترح', useThisVersion: 'استخدم هذه النسخة', otherWaysToRewrite: 'طرق أخرى لإعادة الكتابة:', generatingSuggestions: 'جاري إنشاء اقتراحات...',
     toneAuto: 'نغمة تلقائية',
@@ -254,9 +312,14 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitMedical: 'طبي',
     sitDating: 'مواعدة',
     sitService: 'خدمة',
-    sitEmergency: 'طوارئ'
+    sitEmergency: 'طوارئ',
+    offlineTitle: 'أنت غير متصل بالإنترنت حاليًا',
+    offlineMessage: 'يبدو أنك فقدت الاتصال بالإنترنت. تحقق من اتصالك ثم حاول مرة أخرى.',
   },
   'Thai': {
+	phrasebookTitle: 'สมุดวลีออฟไลน์',
+    noFavorites: 'คุณยังไม่ได้บันทึกวลีโปรดใดๆ',
+    closePhrasebook: 'ปิดสมุดวลี',
     idiomExplanation: 'คำอธิบายสำนวน',
     noHistory: 'ไม่มีประวัติการแชท', closeHistory: 'ปิดประวัติ', you: 'คุณ', translatingTo: 'แปลเป็น', typeHere: 'พิมพ์ที่นี่...', checkingIntent: 'กำลังตรวจสอบเจตนา...', checkIntent: 'ตรวจสอบเจตนา & แปล', translating: 'กำลังแปล...', directTranslate: 'แปลโดยตรง', sanityCheck: 'ตรวจสอบความเข้าใจ', warning: 'คำเตือนทางวัฒนธรรม', discard: 'ยกเลิก', approve: 'อนุมัติ & ส่งต่อ', replyIn: 'ตอบกลับเป็น', roundTrip: 'แปลกลับ', generatingRoundTrip: 'กำลังสร้างคำแปลกลับ...', suggestedFix: 'การแก้ไขที่แนะนำ', useThisVersion: 'ใช้เวอร์ชันนี้', otherWaysToRewrite: 'วิธีอื่นๆ ในการเขียนใหม่:', generatingSuggestions: 'กำลังสร้างคำแนะนำ...',
     toneAuto: 'น้ำเสียงอัตโนมัติ',
@@ -273,7 +336,9 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     sitEmergency: 'ฉุกเฉิน'
   ,
     cameraTranslation: 'แปลจากกล้อง',
-    processingImage: 'กำลังประมวลผลรูปภาพ...'}
+    processingImage: 'กำลังประมวลผลรูปภาพ...',
+    offlineTitle: 'ขณะนี้คุณออฟไลน์อยู่',
+    offlineMessage: 'ดูเหมือนว่าคุณสูญเสียการเชื่อมต่ออินเทอร์เน็ต โปรดตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง',}
 };
 
 export const getStr = (lang: string, key: string): string => {

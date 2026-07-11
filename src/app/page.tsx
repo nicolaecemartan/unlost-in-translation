@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { getStr } from './i18n';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { playAudio } from '../utils/textToSpeech';
@@ -26,6 +26,14 @@ type DraftTranslation = {
   rewrittenSource?: string | null;
   alternativeDirections?: string[] | null;
   idiom_explanation?: string | null;
+};
+
+type Favorite = {
+  id: string;
+  sourceLang: string;
+  targetLang: string;
+  originalText: string;
+  translation: string;
 };
 
 const CopyButton = ({ text, title, className = "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" }: { text: string; title: string; className?: string }) => {
@@ -146,6 +154,49 @@ const SITUATIONS = [
   { id: 'Emergency', icon: '🚨', labelKey: 'sitEmergency' },
 ];
 
+const generateId = () => 
+  typeof crypto !== 'undefined' && crypto.randomUUID 
+    ? crypto.randomUUID() 
+    : Math.random().toString(36).substring(2);
+
+const StarIcon = ({ isFavorited }: { isFavorited: boolean }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill={isFavorited ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385c.148.621-.531 1.05-1.024.69l-4.73-3.466a.562.562 0 00-.652 0l-4.73 3.466c-.493.36-1.172-.07-1.024-.69l1.285-5.385a.563.563 0 00-.182-.557l-4.204-3.602c-.38-.325-.178-.95.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+  </svg>
+);
+
+const ExpandButton = ({ onClick, className = "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 w-5 h-5" }: { onClick: () => void, className?: string }) => (
+  <button onClick={onClick} className={`p-1 transition-colors ${className}`} title="Expand">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-full h-full">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+    </svg>
+  </button>
+);
+
+const Drawer = ({ isOpen, title, children, footer, zIndex = 10 }: { isOpen: boolean, title?: string, children: React.ReactNode, footer?: React.ReactNode, zIndex?: number }) => (
+  <div 
+    aria-hidden={!isOpen}
+    className={`absolute top-0 left-0 w-full h-full pt-[76px] bg-gray-50 dark:bg-gray-900 shadow-inner dark:shadow-gray-950/50 transition-transform duration-300 ease-in-out flex flex-col ${
+      isOpen ? 'translate-y-0' : '-translate-y-full pointer-events-none'
+    }`}
+    style={{ zIndex }}
+  >
+    <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-6 pt-6">
+      {title && <h2 className="text-2xl font-bold mb-4 px-2 text-gray-800 dark:text-gray-200">{title}</h2>}
+      {children}
+    </div>
+    {footer && (
+      <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shrink-0 shadow-[0_-4px_10px_rgba(0,0,0,0.03)] dark:shadow-none">
+        {footer}
+      </div>
+    )}
+  </div>
+);
+
+const getFavoriteKey = (sourceLang: string, targetLang: string, originalText: string, translation: string) => {
+  return JSON.stringify([sourceLang, targetLang, originalText, translation]);
+};
+
 export default function Home() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [interactions, setInteractions] = useState<Interaction[]>([]);
@@ -154,8 +205,6 @@ export default function Home() {
   const [sourceLanguage, setSourceLanguage] = useState('English');
   const [targetLanguage, setTargetLanguage] = useState('Thai');
   const [draft, setDraft] = useState<DraftTranslation | null>(null);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [expandedHelpSection, setExpandedHelpSection] = useState<string | null>(null);
   const [tone, setTone] = useState('Auto');
   const [situation, setSituation] = useState('General');
@@ -167,7 +216,8 @@ export default function Home() {
   const [isSourceMenuOpen, setIsSourceMenuOpen] = useState(false);
   const [isTargetMenuOpen, setIsTargetMenuOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
-  
+  const [favorites, setFavorites] = useState<Favorite[]>([]);
+  const [activeDrawer, setActiveDrawer] = useState<'history' | 'help' | 'favorites' | null>(null);
   // Viewport height for mobile keyboard handling
   const [viewportHeight, setViewportHeight] = useState('100dvh');
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
@@ -182,6 +232,12 @@ export default function Home() {
   const langCode = LANG_CODES[sourceLanguage] || 'en';
   const { isListening, transcript, startListening, setTranscript, isSupported } = useSpeechRecognition(langCode);
 
+ const favoriteKeys = useMemo(() => {
+    return new Set(favorites.map(f => getFavoriteKey(f.sourceLang, f.targetLang, f.originalText, f.translation)));
+  }, [favorites]);
+
+  const isInitialMount = useRef(true);
+  const isExternalSync = useRef(false);
   // Load from URL on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -223,6 +279,7 @@ export default function Home() {
       params.set('tgt', targetLanguage);
       params.set('situation', situation);
       params.set('tone', tone);
+      localStorage.setItem('unlost_lang', sourceLanguage);
       
       const newUrl = `${window.location.pathname}?${params.toString()}`;
       window.history.replaceState({}, '', newUrl);
@@ -283,16 +340,19 @@ export default function Home() {
     }
   }, []);
 
+  // Auto-scroll when new interactions arrive or history drawer opens
   useEffect(() => {
-    endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [interactions, isHistoryOpen]);
+    if (activeDrawer === 'history') {
+      endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [interactions, activeDrawer]);
 
-  // Auto focus input when not in draft or history mode
+  // Auto focus input when no drawer is open
   useEffect(() => {
-    if (!draft && !isHistoryOpen && !loadingMode) {
+    if (!draft && activeDrawer === null && !loadingMode) {
       textareaRef.current?.focus();
     }
-  }, [draft, isHistoryOpen, loadingMode]);
+  }, [draft, activeDrawer, loadingMode]);
 
   const handleSwap = () => {
     const nextSource = targetLanguage;
@@ -300,6 +360,66 @@ export default function Home() {
     setSourceLanguage(nextSource);
     setTargetLanguage(nextTarget);
   };
+
+  // Load favorites from localStorage on mount and sync across tabs
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const loadFavorites = () => {
+      const savedFavorites = localStorage.getItem('unlost_favorites');
+      if (savedFavorites) {
+        try {
+          const parsed = JSON.parse(savedFavorites);
+          if (Array.isArray(parsed)) {
+            setFavorites(parsed);
+          } else {
+            console.warn("Favorites in localStorage is not an array");
+          }
+        } catch (e) {
+          console.error("Failed to parse favorites", e);
+        }
+      }
+    };
+
+    // Initial load
+    loadFavorites();
+
+    // Cross-tab synchronization listener
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'unlost_favorites') {
+        if (e.newValue) {
+          try {
+            const parsed = JSON.parse(e.newValue);
+            if (Array.isArray(parsed)) {
+              isExternalSync.current = true;
+              setFavorites(parsed);
+            }
+          } catch (e) {
+            console.error("Failed to parse cross-tab favorites", e);
+          }
+        } else if (e.newValue === null) {
+          isExternalSync.current = true;
+          setFavorites([]);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Sync favorites back to localStorage on change
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+	if (isExternalSync.current) {
+      isExternalSync.current = false;
+      return;
+    }
+    localStorage.setItem('unlost_favorites', JSON.stringify(favorites));
+  }, [favorites]);
 
   const getDestLangName = (lang: string) => {
     try {
@@ -372,7 +492,7 @@ export default function Home() {
       setInteractions((prev) => [
         ...prev,
         {
-          id: Math.random().toString(36).substring(7),
+          id: generateId(),
           sourceLang: translationSourceLang,
           targetLang: translationTargetLang,
           originalText: data.originalText,
@@ -380,7 +500,7 @@ export default function Home() {
           imageUrl: base64String
         },
       ]);
-      setIsHistoryOpen(true);
+      setActiveDrawer('history');
     } catch (error) {
       console.error(error);
       alert('Failed to process image.');
@@ -438,7 +558,7 @@ export default function Home() {
          setInteractions((prev) => [
            ...prev,
            {
-             id: Math.random().toString(36).substring(7),
+             id: generateId(),
              sourceLang: detectedSource,
              targetLang: targetLanguage,
              originalText: textToSubmit,
@@ -452,7 +572,7 @@ export default function Home() {
          setSourceLanguage(nextSource);
          setTargetLanguage(nextTarget);
          setInput('');
-         setIsHistoryOpen(true);
+         setActiveDrawer('history');
       } else {
         // Progressive UI - Parallel Fetching
         setDraft({
@@ -604,7 +724,7 @@ export default function Home() {
     setInteractions((prev) => [
       ...prev,
       {
-        id: Math.random().toString(36).substring(7),
+        id: generateId(),
         sourceLang: draft.sourceLang,
         targetLang: draft.targetLang,
         originalText: draft.originalText,
@@ -618,7 +738,7 @@ export default function Home() {
     setSourceLanguage(nextSource);
     setTargetLanguage(nextTarget);
     setDraft(null);
-    setIsHistoryOpen(true);
+    setActiveDrawer('history');
     setLoadingMode(false);
   };
 
@@ -628,6 +748,28 @@ export default function Home() {
     setDraft(null);
     setLoadingMode(false);
   };
+  
+  const toggleFavorite = (originalText: string, translation: string, sourceLang: string, targetLang: string) => {
+    const targetKey = getFavoriteKey(sourceLang, targetLang, originalText, translation);
+    
+    setFavorites(prevFavorites => {
+      const exists = prevFavorites.find(f => 
+        getFavoriteKey(f.sourceLang, f.targetLang, f.originalText, f.translation) === targetKey
+      );
+
+      if (exists) {
+        return prevFavorites.filter(f => f.id !== exists.id);
+      } else {
+        return [...prevFavorites, {
+          id: generateId(),
+          originalText,
+          translation,
+          sourceLang,
+          targetLang
+        }];
+      }
+    });
+  };
 
   return (
     <div 
@@ -635,15 +777,12 @@ export default function Home() {
       style={{ height: viewportHeight }}
     >
       
-      {/* HELP DRAWER (Z-20) */}
-      <div 
-        className={`absolute top-0 left-0 w-full bg-gray-50 dark:bg-gray-900 shadow-inner dark:shadow-gray-950/50 transition-transform duration-300 ease-in-out z-20 flex flex-col ${
-          isHelpOpen ? 'translate-y-0 h-full pt-[76px]' : '-translate-y-full h-full pt-[76px]'
-        }`}
+     {/* HELP DRAWER */}
+      <Drawer
+        isOpen={activeDrawer === 'help'}
+        title="How to use Unlost in Translation"
+        zIndex={20}
       >
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6 pt-6 text-gray-800 dark:text-gray-200">
-          <h2 className="text-2xl font-bold mb-6 px-2">How to use Unlost in Translation</h2>
-          
           <div className="space-y-3">
             {[
               {
@@ -719,106 +858,139 @@ export default function Home() {
                 )
               }
             ].map(section => (
-              <div 
-                key={section.id} 
-                className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer transition-all"
-                onClick={() => setExpandedHelpSection(expandedHelpSection === section.id ? null : section.id)}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-lg font-bold flex items-center space-x-2 text-gray-900 dark:text-white">
-                      <span>{section.icon}</span> <span>{section.title}</span>
-                    </h3>
-                    <p className={`text-sm text-gray-500 dark:text-gray-400 mt-1 transition-all ${expandedHelpSection === section.id ? 'hidden' : 'block'}`}>
-                      {section.short}
-                    </p>
-                  </div>
-                  <div className={`transform transition-transform text-gray-400 ${expandedHelpSection === section.id ? 'rotate-180' : ''}`}>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                    </svg>
-                  </div>
+              <div
+              key={section.id}
+              className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer transition-all"
+              onClick={() => setExpandedHelpSection(expandedHelpSection === section.id ? null : section.id)}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-lg font-bold flex items-center space-x-2 text-gray-900 dark:text-white">
+                    <span>{section.icon}</span> <span>{section.title}</span>
+                  </h3>
+                  <p className={`text-sm text-gray-500 dark:text-gray-400 mt-1 transition-all ${expandedHelpSection === section.id ? 'hidden' : 'block'}`}>
+                    {section.short}
+                  </p>
                 </div>
-                {expandedHelpSection === section.id && section.details}
+                <div className={`transform transition-transform text-gray-400 ${expandedHelpSection === section.id ? 'rotate-180' : ''}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </div>
+              </div>
+              {expandedHelpSection === section.id && section.details}
+            </div>
+          ))}
+        </div>
+      </Drawer>
+	  
+	  {/* FAVORITES / PHRASEBOOK DRAWER */}
+      <Drawer
+        isOpen={activeDrawer === 'favorites'}
+        title={`⭐ ${getStr(sourceLanguage, 'phrasebookTitle')}`}
+        zIndex={15}
+		footer={
+          <button 
+            onClick={() => setActiveDrawer(null)} 
+            className="w-full bg-amber-500 text-white font-bold py-4 text-lg rounded-2xl active:bg-amber-600 shadow-lg shadow-amber-200 dark:shadow-amber-900/20 transition-colors"
+          >
+            {getStr(sourceLanguage, 'closePhrasebook')}
+          </button>
+        }
+      >
+        {favorites.length === 0 ? (
+          <div className="text-center text-gray-400 dark:text-gray-500 mt-10 italic">
+            {getStr(sourceLanguage, 'noFavorites')}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {favorites.map((fav) => (
+              <div key={fav.id} className="bg-white dark:bg-gray-800 rounded-3xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col relative group">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                    {LANGUAGE_DISPLAY_NAMES[fav.sourceLang] || fav.sourceLang} → {LANGUAGE_DISPLAY_NAMES[fav.targetLang] || fav.targetLang}
+                  </span>
+                  <button
+                    onClick={() => toggleFavorite(fav.originalText, fav.translation, fav.sourceLang, fav.targetLang)}
+                    className="text-amber-500 hover:text-amber-600 transition-colors"
+                    title="Remove from favorites"
+                  >
+                    <StarIcon isFavorited={true} />
+                  </button>
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 mb-1 text-lg">{fav.originalText}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white leading-snug">{fav.translation}</p>
+
+                <div className="absolute bottom-3 right-4 flex space-x-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity items-center">
+                  <CopyButton text={fav.translation} title="Copy translation" className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                  <ExpandButton onClick={() => setFullScreenText(fav.translation)} />
+                </div>
               </div>
             ))}
           </div>
-        </div>
-      </div>
+        )}
+      </Drawer>
 
-      {/* HISTORY DRAWER (Z-10) */}
-      <div 
-        className={`absolute top-0 left-0 w-full bg-gray-50 dark:bg-gray-900 shadow-inner dark:shadow-gray-950/50 transition-transform duration-300 ease-in-out z-10 flex flex-col ${
-          isHistoryOpen ? 'translate-y-0 h-full pt-[76px]' : '-translate-y-full h-full pt-[76px]'
-        }`}
-      >
-        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-6 pt-6">
-          {interactions.length === 0 ? (
-            <div className="text-center text-gray-400 dark:text-gray-500 mt-10 italic">{getStr(sourceLanguage, 'noHistory')}</div>
-          ) : (
-            interactions.map((interaction) => {
-              const isRight = interaction.sourceLang === sourceLanguage;
-              let displayText = interaction.originalText;
-              
-              if (interaction.sourceLang === sourceLanguage) {
-                displayText = interaction.originalText;
-              } else if (interaction.targetLang === sourceLanguage) {
-                displayText = interaction.translation;
-              }
+      {/* HISTORY DRAWER */}
+		<Drawer 
+			isOpen={activeDrawer === 'history'} 
+			zIndex={10}
+			footer={
+          	 <button 
+            	onClick={() => setActiveDrawer(null)}
+            	className="w-full bg-blue-600 text-white font-bold py-5 text-xl rounded-2xl active:bg-blue-700 shadow-lg shadow-blue-200 dark:shadow-blue-900/20 transition-colors"
+          	 >
+             {getStr(sourceLanguage, 'replyIn')} {LANGUAGE_DISPLAY_NAMES[sourceLanguage]}
+             </button>
+            }
+		>
+		<div className="space-y-6">
+			{interactions.length === 0 ? (
+			<div className="text-center text-gray-400 dark:text-gray-500 mt-10 italic">{getStr(sourceLanguage, 'noHistory')}</div>
+			) : (
+			interactions.map((interaction) => {
+				const isRight = interaction.sourceLang === sourceLanguage;
+				let displayText = interaction.originalText;
+				if (interaction.sourceLang === sourceLanguage) displayText = interaction.originalText;
+				else if (interaction.targetLang === sourceLanguage) displayText = interaction.translation;
+				
+				const interactionKey = getFavoriteKey(interaction.sourceLang, interaction.targetLang, interaction.originalText, interaction.translation);
+        		const isFav = favoriteKeys.has(interactionKey);
 
-              return (
-                <div key={interaction.id} className={`flex flex-col w-full ${isRight ? 'items-end' : 'items-start'}`}>
-                  <div className={`group relative max-w-[85%] sm:max-w-[70%] rounded-3xl p-5 shadow-sm ${
-                    isRight 
-                      ? 'bg-blue-600 text-white rounded-br-none' 
-                      : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100'
-                  }`}>
-                    <div className="flex justify-between items-start space-x-4">
-                      <div>
-                        {interaction.imageUrl && (
-                          <div className="mb-3 rounded-xl overflow-hidden border border-black/10 dark:border-white/10">
-                            <img src={interaction.imageUrl} alt="Captured" className="max-h-48 w-auto object-cover" />
-                          </div>
-                        )}
-                        <p className="text-xl leading-snug">{displayText}</p>
-                      </div>
-                      <div className="flex shrink-0 space-x-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                        <CopyButton 
-                          text={displayText} 
-                          title="Copy message" 
-                          className={isRight ? 'text-blue-200 hover:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'} 
-                        />
-                        <SpeakButton 
-                          text={displayText} 
-                          language={displayText === interaction.originalText ? LANG_CODES[interaction.sourceLang] : LANG_CODES[interaction.targetLang]}
-                          title={getStr(sourceLanguage, 'readAloud')}
-                          className={isRight ? 'text-blue-200 hover:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}
-                        />
-                        <button 
-                          onClick={() => setFullScreenText(interaction.translation)} 
-                          className={isRight ? 'text-blue-200 hover:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}
-                          title="Expand"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" /></svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
-          <div ref={endOfMessagesRef} />
-        </div>
-        <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shrink-0 shadow-[0_-4px_10px_rgba(0,0,0,0.03)] dark:shadow-none">
-          <button 
-            onClick={() => setIsHistoryOpen(false)} 
-            className="w-full bg-blue-600 text-white font-bold py-5 text-xl rounded-2xl active:bg-blue-700 shadow-lg shadow-blue-200 dark:shadow-blue-900/20 transition-colors"
-          >
-            {getStr(sourceLanguage, 'replyIn')} {LANGUAGE_DISPLAY_NAMES[sourceLanguage]}
-          </button>
-        </div>
-      </div>
+				return (
+				<div key={interaction.id} className={`flex flex-col w-full ${isRight ? 'items-end' : 'items-start'}`}>
+					<div className={`group relative max-w-[85%] sm:max-w-[70%] rounded-3xl p-5 shadow-sm ${isRight ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100'}`}>
+					<div className="flex justify-between items-start space-x-4">
+						<div>
+						{interaction.imageUrl && (
+							<div className="mb-3 rounded-xl overflow-hidden border border-black/10 dark:border-white/10">
+							<img src={interaction.imageUrl} alt="Captured" className="max-h-48 w-auto object-cover" />
+							</div>
+						)}
+						<p className="text-xl leading-snug">{displayText}</p>
+						</div>
+						<div className="flex shrink-0 space-x-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity items-center">
+						<button onClick={() => toggleFavorite(interaction.originalText, interaction.translation, interaction.sourceLang, interaction.targetLang)} className={`${isFav ? 'text-amber-400 hover:text-amber-500' : (isRight ? 'text-blue-300/70 hover:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300')} transition-colors p-1`} title={isFav ? "Remove from favorites" : "Save to Phrasebook"}>
+							<StarIcon isFavorited={isFav} />
+						</button>
+						<CopyButton text={displayText} title="Copy message" className={`p-1 ${isRight ? 'text-blue-300/70 hover:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`} />
+             <SpeakButton 
+                        text={displayText} 
+                        language={displayText === interaction.originalText ? LANG_CODES[interaction.sourceLang] : LANG_CODES[interaction.targetLang]}
+                        title={getStr(sourceLanguage, 'readAloud')}
+                        className={isRight ? 'text-blue-200 hover:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}
+              />
+						<ExpandButton onClick={() => setFullScreenText(interaction.translation)} />
+						</div>
+					</div>
+					</div>
+				</div>
+				);
+			})
+			)}
+			<div ref={endOfMessagesRef} />
+		</div>
+		</Drawer>
 
       {/* HEADER (Z-20) */}
       <header className={`relative z-20 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-3 pt-1.5 pb-2 flex flex-col shrink-0 shadow-sm dark:shadow-gray-950/50 transition-all duration-300 ${isKeyboardOpen && !draft ? 'hidden' : 'block'}`}>
@@ -1052,17 +1224,27 @@ export default function Home() {
           </div>
 
           <button 
-            onClick={() => { setIsHelpOpen(!isHelpOpen); setIsHistoryOpen(false); }} 
-            className={`p-2 rounded-full transition-colors ${isHelpOpen ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'}`}
+            onClick={() => setActiveDrawer(activeDrawer === 'favorites' ? null : 'favorites')} 
+            className={`p-2 rounded-full transition-colors ${activeDrawer === 'favorites' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'}`}
+            title="Phrasebook (Favorites)"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill={activeDrawer === 'favorites' ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385c.148.621-.531 1.05-1.024.69l-4.73-3.466a.562.562 0 00-.652 0l-4.73 3.466c-.493.36-1.172-.07-1.024-.69l1.285-5.385a.563.563 0 00-.182-.557l-4.204-3.602c-.38-.325-.178-.95.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+            </svg>
+          </button>
+          <button 
+            onClick={() => setActiveDrawer(activeDrawer === 'help' ? null : 'help')} 
+            className={`p-2 rounded-full transition-colors ${activeDrawer === 'help' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'}`}
             title="Help"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
             </svg>
           </button>
+
           <button 
-            onClick={() => { setIsHistoryOpen(!isHistoryOpen); setIsHelpOpen(false); }} 
-            className={`p-2 rounded-full transition-colors ${isHistoryOpen ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'}`}
+            onClick={() => setActiveDrawer(activeDrawer === 'history' ? null : 'history')} 
+            className={`p-2 rounded-full transition-colors ${activeDrawer === 'history' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'}`}
             title="History"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
@@ -1204,9 +1386,9 @@ export default function Home() {
                       title={getStr(sourceLanguage, 'readAloud')}
                       className="text-blue-400 hover:text-blue-600 dark:text-blue-500 dark:hover:text-blue-300" 
                     />
-                    <button onClick={() => setFullScreenText(draft.translation)} className="text-blue-400 hover:text-blue-600 dark:text-blue-500 dark:hover:text-blue-300 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100" title="Expand Translation">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" /></svg>
-                    </button>
+                    <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+  						<ExpandButton onClick={() => setFullScreenText(draft.translation)} className="text-blue-400 hover:text-blue-600 dark:text-blue-500 dark:hover:text-blue-300 w-6 h-6" />
+					</div>
                   </div>
                 </div>
                 <p className={`text-3xl sm:text-5xl text-blue-900 dark:text-blue-300 font-medium leading-tight ${draft.translation === getStr(sourceLanguage, 'translating') ? 'animate-pulse opacity-70' : ''}`}>
