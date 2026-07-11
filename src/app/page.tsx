@@ -219,7 +219,7 @@ export default function Home() {
   }, [favorites]);
 
   const isInitialMount = useRef(true);
-
+  const isExternalSync = useRef(false);
   // Load from URL on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -361,7 +361,20 @@ export default function Home() {
     // Cross-tab synchronization listener
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'unlost_favorites') {
-        loadFavorites();
+        if (e.newValue) {
+          try {
+            const parsed = JSON.parse(e.newValue);
+            if (Array.isArray(parsed)) {
+              isExternalSync.current = true;
+              setFavorites(parsed);
+            }
+          } catch (e) {
+            console.error("Failed to parse cross-tab favorites", e);
+          }
+        } else if (e.newValue === null) {
+          isExternalSync.current = true;
+          setFavorites([]);
+        }
       }
     };
 
@@ -373,6 +386,10 @@ export default function Home() {
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
+      return;
+    }
+	if (isExternalSync.current) {
+      isExternalSync.current = false;
       return;
     }
     localStorage.setItem('unlost_favorites', JSON.stringify(favorites));
